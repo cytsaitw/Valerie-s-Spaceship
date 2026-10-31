@@ -1,0 +1,6 @@
+{
+  "name": "Valerie's Power Electronics Spaceship Workshop",
+  "description": "A goal-oriented power electronics simulation game where players tune AC sine waves, minimize Total Harmonic Distortion (THD), and test how far Valerie's spaceship can fly with a fixed power budget.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
