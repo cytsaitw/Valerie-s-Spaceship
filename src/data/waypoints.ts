@@ -34,8 +34,8 @@ export const CELESTIAL_WAYPOINTS: CelestialWaypoint[] = [
     requiredThd: 10,
     descriptionZh: '跨越五千萬公里的深空航行，推進系統需要純正弦波驅動以維持航速。',
     descriptionEn: 'Deep space cruise across 55M km. Thrusters require clean AC sine wave propulsion.',
-    valerieTipsZh: '切換至 SPWM (正弦脈寬調變)，開關頻率調高到 10kHz 以上，THD 將大幅降至 10% 以下！',
-    valerieTipsEn: 'Switch to SPWM and raise switching frequency above 10kHz to get THD under 10%!',
+    valerieTipsZh: '使用 SPWM (正弦脈寬調變)，並增大 L 與 C (例如 L=3.5mH, C=18µF) 來濾除漣波，THD 將大幅降至 10% 以下！',
+    valerieTipsEn: 'Use SPWM and increase L and C (e.g. L=3.5mH, C=18µF) to filter out the ripple and get THD under 10%!',
   },
   {
     id: 'asteroid_belt',

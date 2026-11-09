@@ -86,17 +86,23 @@ export function calculateAcSimulation(params: AcCircuitParams): AcSimulationResu
     // Fundamental: V_1 = ma * Vdc (linear region)
     vFund = Math.min(1.0, ma) * dcBusVoltage;
 
-    // In overmodulation (ma > 1.0), low-order odd harmonics appear!
-    const overmodFactor = Math.max(0, ma - 1.0);
-    const h3_amp = overmodFactor > 0 ? (vFund * 0.22 * overmodFactor) / 0.25 : vFund * 0.005;
-    const h5_amp = overmodFactor > 0 ? (vFund * 0.12 * overmodFactor) / 0.25 : vFund * 0.003;
-    const h7_amp = overmodFactor > 0 ? (vFund * 0.06 * overmodFactor) / 0.25 : vFund * 0.002;
+    // Gameplay model, not a derivation: an untuned inverter carries a square-like
+    // odd-harmonic series (amplitude 1/n, up to h11), which plots as the rippling
+    // Gibbs-style wave. It fades as f_sw rises above 16 kHz, but the floor means
+    // only the LC filter can finish the job, so f_sw alone can't win the game.
+    const residual = Math.max(0.15, Math.min(1, Math.pow(16000 / fsw, 4)));
+
+    // In overmodulation (ma > 1.0), low-order odd harmonics grow further.
+    const overmodFactor = Math.max(0, ma - 1.0) / 0.25;
+    const overmodShare: Record<number, number> = { 3: 0.22, 5: 0.12, 7: 0.06 };
 
     const baseOrders = [
       { n: 1, raw: vFund, label: 'h1 (Fund)' },
-      { n: 3, raw: h3_amp, label: 'h3' },
-      { n: 5, raw: h5_amp, label: 'h5' },
-      { n: 7, raw: h7_amp, label: 'h7' },
+      ...[3, 5, 7, 9, 11].map((n) => ({
+        n,
+        raw: vFund * (residual / n + (overmodShare[n] ?? 0) * overmodFactor),
+        label: `h${n}`,
+      })),
     ];
 
     for (const b of baseOrders) {
@@ -210,13 +216,14 @@ export function generateAcWaveforms(
   numCycles: number = 2
 ): WaveformPoint[] {
   const points: WaveformPoint[] = [];
-  const N = 300;
+  const { waveformMode, modulationIndex, switchingFreq, dcBusVoltage } = params;
   const f0 = params.fundamentalFreq || 400;
   const T = 1 / f0;
   const totalTime = numCycles * T;
+  // Sample each carrier cycle ~8 times so the switching ripple doesn't alias.
+  const N = Math.min(4000, Math.max(600, Math.ceil(totalTime * switchingFreq * 8)));
   const dt = totalTime / N;
 
-  const { waveformMode, modulationIndex, switchingFreq, dcBusVoltage } = params;
   const { vFundamentalPeak, thdPercent, harmonics } = simResult;
 
   for (let i = 0; i <= N; i++) {
@@ -246,25 +253,13 @@ export function generateAcWaveforms(
     // v_actual(t) = vFund * sin(w*t) + sum( v_n * sin(n*w*t) ) + carrier ripples
     let vActual = vFundamentalPeak * Math.sin(phase);
 
-    if (waveformMode === 'square') {
-      for (const h of harmonics) {
-        if (h.order > 1) {
-          vActual += h.filteredMagnitude * Math.sin(h.order * phase);
-        }
+    for (const h of harmonics) {
+      if (h.order > 1 && !h.isCarrier) {
+        vActual += h.filteredMagnitude * Math.sin(h.order * phase);
       }
-    } else if (waveformMode === 'modified_sine') {
-      for (const h of harmonics) {
-        if (h.order > 1) {
-          vActual += h.filteredMagnitude * Math.sin(h.order * phase);
-        }
-      }
-    } else {
-      // SPWM low-order harmonics if overmodulated
-      const h3 = harmonics.find((h) => h.order === 3)?.filteredMagnitude || 0;
-      const h5 = harmonics.find((h) => h.order === 5)?.filteredMagnitude || 0;
-      vActual += h3 * Math.sin(3 * phase);
-      vActual += h5 * Math.sin(5 * phase);
+    }
 
+    if (waveformMode === 'spwm') {
       // Add carrier ripple envelope
       const carrierHarmonic = harmonics.find((h) => h.isCarrier);
       const rippleAmp = carrierHarmonic ? carrierHarmonic.filteredMagnitude * 0.85 : (vFundamentalPeak * thdPercent) / 100;

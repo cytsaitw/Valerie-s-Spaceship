@@ -42,8 +42,9 @@ export default function App() {
     waveformMode: 'spwm',
     modulationIndex: 0.90,
     switchingFreq: 16000,
-    filterInductance: 3.5e-3, // 3.5 mH
-    filterCapacitance: 18e-6, // 18 µF
+    // Deliberately untuned start: f_c ≈ 5.6 kHz passes h3–h11, so the wave starts rough.
+    filterInductance: 0.8e-3, // 0.8 mH
+    filterCapacitance: 1e-6,  // 1 µF
     fundamentalFreq: 400,     // 400 Hz standard aerospace AC
     dcBusVoltage: 300,        // 300 V
     fixedPowerCoreKw: 100,    // 100 kW fixed budget

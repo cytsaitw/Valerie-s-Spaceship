@@ -121,8 +121,8 @@ const translations: Record<string, { zh: string; en: string }> = {
     en: "✅ Optimal: Cutoff sits well between 400Hz and switching carrier!",
   },
   cutoffAdviceBad: {
-    zh: "⚠️ 截止頻率太高，載波諧波無法被有效衰減，THD 偏高！",
-    en: "⚠️ Cutoff too high! Switching harmonics leak through into thruster.",
+    zh: "⚠️ 截止頻率不理想，低階諧波或載波諧波無法被有效衰減，THD 偏高！",
+    en: "⚠️ Cutoff off target! Harmonics leak through into thruster.",
   },
   presetsTitle: {
     zh: "快速電路預設 (Presets):",

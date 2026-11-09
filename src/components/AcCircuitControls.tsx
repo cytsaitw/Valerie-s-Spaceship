@@ -31,9 +31,9 @@ export const AcCircuitControls: React.FC<AcCircuitControlsProps> = ({
       onChange({
         waveformMode: 'spwm',
         modulationIndex: 0.85,
-        switchingFreq: 10000,
-        filterInductance: 1.5e-3,
-        filterCapacitance: 10e-6,
+        switchingFreq: 16000,
+        filterInductance: 3.5e-3,
+        filterCapacitance: 18e-6,
       });
     } else {
       onChange({
@@ -46,7 +46,8 @@ export const AcCircuitControls: React.FC<AcCircuitControlsProps> = ({
     }
   };
 
-  const isCutoffOptimal = cutoffFreq > 600 && cutoffFreq < switchingFreq * 0.45;
+  // Upper bound of 1200 Hz (h3 of 400 Hz): above it the low-order harmonics pass straight through.
+  const isCutoffOptimal = cutoffFreq > 600 && cutoffFreq < Math.min(1200, switchingFreq * 0.45);
 
   return (
     <div className="w-full bg-[#080e18] border border-cyan-900/40 rounded-xl p-4 shadow-xl flex flex-col justify-between gap-3">
